@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: httpbin
+  name: httpbin
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: httpbin
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: httpbin
+    spec:
+      topologySpreadConstraints:
+        - maxSkew: 2 
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app: httpbin
+      securityContext:
+        runAsUser: 10001
+        runAsGroup: 10001
+      containers:
+      - image: kennethreitz/httpbin
+        name: httpbin
+        resources: 
+          requests:
+            cpu: 0.25
+            memory: "125M"
+          limits:
+            memory: "250M"
+        livenessProbe:
+          httpGet:
+            path: /status/200
+            port: 80
+            timeoutSeconds: 2
+        readinessProbe:
+          exec:
+            command:
+              - python3
+              - -c
+              - |
+                import urllib.request
+                exit(0) if urllib.request.urlopen('http://localhost').status == 200 else exit(1)
+          ## Simulate we need some time to check everything is ready
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          failureThreshold: 3
