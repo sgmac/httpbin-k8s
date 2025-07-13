@@ -19,7 +19,6 @@ Once everything is ready, create the cluster and apply the deployment.
 
 ```
 $ kind create cluster --config kind-cluster-config.yaml --name httpbin-k8s
-$ kubectl apply -f kind-cluster-config.yaml
 $ kubectl apply -f httpbin-deployment.yaml
 ```
 
